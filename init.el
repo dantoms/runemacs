@@ -1,3 +1,6 @@
+;; Open at full screen
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
 ;; Allow hash to be entered  
 (global-set-key (kbd "M-3") '(lambda () (interactive) (insert "#")))
 
