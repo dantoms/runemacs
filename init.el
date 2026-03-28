@@ -1,9 +1,3 @@
-;; Open at full screen
-(add-to-list 'default-frame-alist '(fullscreen . maximized))
-
-;; Allow hash to be entered  
-(global-set-key (kbd "M-3") '(lambda () (interactive) (insert "#")))
-
 (setq inhibit-startup-message t)
 
 (scroll-bar-mode -1)        ; Disable visible scrollbar
@@ -16,12 +10,16 @@
 ;; Set up the visible bell
 (setq visible-bell t)
 
+;; Open at full screen
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
 (set-face-attribute 'default nil :font "Fira Code Retina" :height 140)
 
-(load-theme 'misterioso)
+;; Install icons for doom-modeline
+;; Use "M-x all-the-icons-install-fonts" on new install
+(use-package all-the-icons)
 
-;; Make ESC quit prompts
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
+(load-theme 'misterioso)
 
 ;; Initialize package sources
 (require 'package)
@@ -52,6 +50,11 @@
 		eshell-mode-hook))
   (add-hook mode (lambda () (display-line-numbers-mode 0))))
 
+;; Allow hash to be entered  
+(global-set-key (kbd "M-3") '(lambda () (interactive) (insert "#")))
+
+;; Make ESC quit prompts
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (use-package ivy
   :diminish
@@ -73,23 +76,9 @@
 :config
 (ivy-mode 1))
 
-(global-set-key (kbd "C-M-j") 'counsel-switch-buffer)
-
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("f1e8339b04aef8f145dd4782d03499d9d716fdc0361319411ac2efc603249326"
-     default))
- '(package-selected-packages nil))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
+(use-package ivy-rich
+:init
+(ivy-rich-mode 1))
 
 (use-package counsel
   :bind (("M-x" . counsel-M-x)
@@ -100,48 +89,40 @@
   :config
   (setq ivy-initial-inputs-alist nil)) ;; Don't start searches with ^
 
-;; Install icons for doom-modeline
-;; Use "M-x all-the-icons-install-fonts" on new install
-(use-package all-the-icons)
-
 (use-package doom-modeline
   :ensure t
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15)))
 
 (use-package doom-themes
-  :init (load-theme 'doom-solarized-dark t))
+:init (load-theme 'doom-solarized-dark t))
 
 (use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+:hook (prog-mode . rainbow-delimiters-mode))
 
 (which-key-mode 1)
 (setq which-key-idle-delay 0)
 
-(use-package ivy-rich
-  :init
-  (ivy-rich-mode 1))
-
 (use-package helpful
-  :custom
-  (counsel-describe-function-function #'helpful-callable)
-  (counsel-describe-variable-function #'helpful-variable)
-  :bind
-  ([remap describe-function] . counsel-describe-function)
-  ([remap describe-command] . helpful-command)
-  ([remap describe-variable] . counsel-describe-variable)
-  ([remap describe-key] . helpful-key))
+:custom
+(counsel-describe-function-function #'helpful-callable)
+(counsel-describe-variable-function #'helpful-variable)
+:bind
+([remap describe-function] . counsel-describe-function)
+([remap describe-command] . helpful-command)
+([remap describe-variable] . counsel-describe-variable)
+([remap describe-key] . helpful-key))
 
 (use-package general
-  :config
-  (general-create-definer dt/leader-keys
-    :keymaps '(normal insert visual emacs)
-    :prefix "SPC"
-    :global-prefix "C-SPC")
+ :config
+ (general-create-definer dt/leader-keys
+   :keymaps '(normal insert visual emacs)
+   :prefix "SPC"
+   :global-prefix "C-SPC")
 
-  (dt/leader-keys
-    "t"  '(:ignore t :which-key "toggles")
-    "tt" '(counsel-load-theme :which-key "choose theme")))
+ (dt/leader-keys
+   "t"  '(:ignore t :which-key "toggles")
+   "tt" '(counsel-load-theme :which-key "choose theme")))
 
 (use-package evil
   :init
@@ -162,9 +143,9 @@
   (evil-set-initial-state 'dashboard-mode 'normal))
 
 (use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
+:after evil
+:config
+(evil-collection-init))
 
 (use-package hydra)
 
@@ -195,7 +176,6 @@
 (use-package magit
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
 
 ;; NOTE: Make sure to configure a GitHub token before using this package!
 ;; - https://magit.vc/manual/forge/Token-Creation.html#Token-Creation
@@ -258,3 +238,23 @@
 
 (use-package visual-fill-column
   :hook (org-mode . efs/org-mode-visual-fill))
+
+;;Enable babel languages
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)))
+
+(require 'org-tempo)
+
+(add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
+(add-to-list 'org-structure-template-alist '("py" . "src python"))
+(add-to-list 'org-structure-template-alist '("js" . "src javascript"))
+
+;; Automatically tangle our Emacs.org config file when we save it
+(defun efs/org-babel-tangle-config ()
+  (when (string-equal (buffer-file-name)
+      		      (expand-file-name "~/.emacs.d/emacs.org"))
+    ;; Dynamic scoping to the rescue
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle))))
+(add-hook 'org-mode-hook (lambda () (add-hook 'after-save-hook #'efs/org-babel-tangle-config)))
