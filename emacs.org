@@ -237,6 +237,12 @@
 
 #+end_src
 
+** Evil Nerd Commenter
+#+begin_src emacs-lisp
+
+  (use-package evil-nerd-commenter
+    :bind ("M-/" . evilnc-comment-or-uncomment-lines))
+#+end_src
 * Hydra
 #+begin_src emacs-lisp
   (use-package hydra)
