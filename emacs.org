@@ -439,3 +439,14 @@
   :hook (company-mode . company-box-mode))
 #+end_src
 
+* Terminal
+** Vterm
+#+begin_src emacs-lisp
+
+  (use-package vterm
+    :commands vterm
+    :config
+    (setq vterm-max-scrollback 10000))
+
+#+end_src
+
